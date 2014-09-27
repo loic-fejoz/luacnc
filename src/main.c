@@ -2,8 +2,12 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h> 
+#include <string.h>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
  
 #define PROGRAM_NAME "luacnc test"
 
@@ -113,6 +117,29 @@ void on_display() {
 
 void free_resources() {
   glDeleteProgram(program);
+}
+
+void error (lua_State *L, const char *fmt, ...) {
+  va_list argp;
+  va_start(argp, fmt);
+  vfprintf(stderr, fmt, argp);
+  va_end(argp);
+  lua_close(L);
+  exit(EXIT_FAILURE);
+}
+
+void loadLuaFragmentShader(char *filename, const char** fragment_shader_source) {
+  lua_State *L = luaL_newstate();
+  luaL_openlibs(L);
+
+  if (luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, 0)) {
+    error(L, "cannot run luacnc file: %s", lua_tostring(L, -1));
+  }
+  lua_getglobal(L, "fs_src");
+  if (!lua_isstring(L, -1)) {
+    error(L, "`fs_src' shall be a string");
+  }
+  *fragment_shader_source = lua_tostring(L, -1);
 }
  
 int main(int argc, char *argv[]) {
