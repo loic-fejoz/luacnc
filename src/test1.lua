@@ -5,4 +5,4 @@ engrave(0.7,
   )
 )
 
-engrave(0.5, translate(50,50) * box(70))
+engrave(0.4, translate(50,50) * box(70))

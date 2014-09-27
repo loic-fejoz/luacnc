@@ -80,18 +80,4 @@ function engrave(depth, shape)
    fs_src = fs_src .. "  gl_FragColor[1] = " .. depth .. ";\n"
    fs_src = fs_src .. "  gl_FragColor[2] = " .. depth .. ";\n"
    fs_src = fs_src .. " }\n"
--- else {\n"
---   fs_src = fs_src .. "  gl_FragColor[0] = 0.0;\n"
---   fs_src = fs_src .. "  gl_FragColor[1] = 0.0;\n"
---   fs_src = fs_src .. "  gl_FragColor[2] = 0.0;\n"
---   fs_src = fs_src .. " }\n"
 end
-
-engrave(0.7,
-  union(
-     translate(320,320) * circle(30),
-     translate(300, 300) * box(50)
-  )
-)
-
-engrave(0.5, translate(50,50) * box(70))
