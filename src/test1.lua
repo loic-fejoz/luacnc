@@ -1,10 +1,10 @@
-shape_var_index = 0;
+shape_var_index = 0
 function nextShapeVar()
    shape_var_index = shape_var_index + 1
    return "shape" .. shape_var_index
 end
 
-point_var_index = 0;
+point_var_index = 0
 function nextPointVar()
    point_var_index = point_var_index + 1
    return "p" .. point_var_index
@@ -15,7 +15,7 @@ function v(x, y)
 end
 
 function circle(radius)
-   v = nextShapeVar()
+   local v = nextShapeVar()
    r = {}
    r.glsl = function (p)
       print(" bool " .. v .. " = " .. p .. ".x + " .. p .. ".y < " .. radius .. " * " .. radius .. ";")
@@ -25,7 +25,7 @@ function circle(radius)
 end
 
 function box(width)
-   v = nextShapeVar()
+   local v = nextShapeVar()
    r = {}
    r.glsl = function (p)
       print(" bool " .. v .. " = " .. p .. ".x < " .. width .. " && " .. p .. ".y < " .. width .. ";")
@@ -38,7 +38,7 @@ end
 Translation = {}
 
 function Translate(v, shape)
-   np = nextPointVar()
+   local np = nextPointVar()
    r = {}
    r.glsl = function(p)
       print(" vec2 " .. np .. " = " .. p .. " - vec2(" .. v.x .. ", " .. v.y .. ");")
@@ -58,15 +58,14 @@ function translate(x, y)
 end
 
 function union(shape1, shape2)
-   v = nextShapeVar()
+   local v = nextShapeVar()
    r = {}
-   function glsl(p)
+   r.glsl = function (p)
       shape1.glsl(p)
       shape2.glsl(p)
       print(" bool " .. v .. " = " .. shape1.name .. " && " .. shape2.name .. ";")
    end
    r.name = v
-   r.glsl = glsl
    return r
 end
 
