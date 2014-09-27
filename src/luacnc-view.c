@@ -9,7 +9,7 @@
 #include <lauxlib.h>
 #include <lualib.h>
  
-#define PROGRAM_NAME "luacnc test"
+#define PROGRAM_NAME "luacnc"
 
 GLuint program;
 GLint attribute_coord2d;
