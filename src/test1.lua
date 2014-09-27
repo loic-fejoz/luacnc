@@ -69,12 +69,12 @@ function union(shape1, shape2)
    return r
 end
 
-function emit(shape)
-   print("#version 120")
-   print("void main(void) {")
+function engrave(depth, shape)
+--   print("#version 120")
+--   print("void main(void) {")
    shape.glsl("gl_FragCoord")
    print(" if (" .. shape.name .. ") {")
-   print("  gl_FragColor[0] = 1.0;")
+   print("  gl_FragColor[0] = " .. depth .. ";")
    print("  gl_FragColor[1] = 0.0; ")
    print("  gl_FragColor[2] = 0.0; ")
    print(" } else {")
@@ -82,10 +82,10 @@ function emit(shape)
    print("  gl_FragColor[1] = 0.0; ")
    print("  gl_FragColor[2] = 0.0; ")
    print(" }")
-   print("}")
+--   print("}")
 end
 
-emit(
+engrave(0.5,
    union(
       translate(320,320) * box(80),
       translate(300, 300) * circle(50)
