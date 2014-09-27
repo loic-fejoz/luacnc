@@ -1,5 +1,8 @@
+#include <errno.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h> 
 #include <string.h>
@@ -8,11 +11,19 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
+#include <sys/inotify.h>
+#include <sys/epoll.h>
  
 #define PROGRAM_NAME "luacnc"
+#define NAME_MAX (1024)
+#define EVENT_BUF_LEN  (sizeof(struct inotify_event) + NAME_MAX + 1)
 
 GLuint program;
 GLint attribute_coord2d;
+int inotify_fd;
+char* script_filename;
+const char* fragment_shader_source;
+double default_depth;
 
 bool init_resources(const char* fragment_shader_source_without_header, double default_depth) {
   GLint 
@@ -53,6 +64,7 @@ bool init_resources(const char* fragment_shader_source_without_header, double de
       glGetShaderInfoLog(fs, log_info_length, NULL, info_log);
       fprintf(stderr, "%s\n", info_log);
       free(info_log);
+      info_log = NULL;
     }
     return false;
   }
@@ -72,6 +84,60 @@ bool init_resources(const char* fragment_shader_source_without_header, double de
     return false;
   }
   return true;
+}
+
+void stop_on_lua_error (lua_State *L, const char *fmt, ...) {
+  va_list argp;
+  va_start(argp, fmt);
+  vfprintf(stderr, fmt, argp);
+  va_end(argp);
+  lua_close(L);
+  exit(EXIT_FAILURE);
+}
+
+void load_lua_fragment_shader(const char *filename, const char** fragment_shader_source, double *default_depth) {
+  lua_State *L = luaL_newstate();
+  luaL_openlibs(L);
+
+  if (luaL_loadfile(L, "luacnc.lua") || lua_pcall(L, 0, 0, 0)) {
+    stop_on_lua_error(L, "cannot run luacnc file: %s", lua_tostring(L, -1));
+  }
+  if (luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, 0)) {
+    stop_on_lua_error(L, "cannot run luacnc file: %s", lua_tostring(L, -1));
+  }
+  lua_getglobal(L, "fs_src");
+  if (!lua_isstring(L, -1)) {
+    stop_on_lua_error(L, "error: `fs_src' shall be a string\n");
+  }
+  *fragment_shader_source = lua_tostring(L, -1);
+  lua_getglobal(L, "default_depth");
+  if (!lua_isnumber(L, -1)) {
+    stop_on_lua_error(L, "error: `default_depth' shall be a number between 0.0 and 1.0 inclusive.\n");
+  }
+  *default_depth =  lua_tonumber(L, -1);
+}
+
+void check_and_reload_script_if_modified() {
+  char buffer[EVENT_BUF_LEN];
+  // Trying to read an event
+  size_t evt_len = read(inotify_fd, buffer, EVENT_BUF_LEN);
+  if (evt_len < 0 && errno != EAGAIN) {
+    perror("read");
+    exit(EXIT_FAILURE);
+  }
+  if (evt_len > 0) {
+    // there is an event on script file
+    struct inotify_event* evt = (struct inotify_event*)buffer;
+    if ( evt->mask & IN_MODIFY ) {
+      fprintf(stderr, "-------------- Reloading script... -----------\n");
+      load_lua_fragment_shader(script_filename, &fragment_shader_source, &default_depth);
+      init_resources(fragment_shader_source, default_depth);
+      fprintf(stderr, "-------------- shader reloaded ---------------\n");
+    } else if (evt->mask && IN_DELETE) {
+      // TODO
+    }
+  }
+  glutPostRedisplay();
 }
 
 void on_display() {
@@ -110,37 +176,6 @@ void on_display() {
 void free_resources() {
   glDeleteProgram(program);
 }
-
-void error (lua_State *L, const char *fmt, ...) {
-  va_list argp;
-  va_start(argp, fmt);
-  vfprintf(stderr, fmt, argp);
-  va_end(argp);
-  lua_close(L);
-  exit(EXIT_FAILURE);
-}
-
-void load_lua_fragment_shader(char *filename, const char** fragment_shader_source, double *default_depth) {
-  lua_State *L = luaL_newstate();
-  luaL_openlibs(L);
-
-  if (luaL_loadfile(L, "luacnc.lua") || lua_pcall(L, 0, 0, 0)) {
-    error(L, "cannot run luacnc file: %s", lua_tostring(L, -1));
-  }
-  if (luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, 0)) {
-    error(L, "cannot run luacnc file: %s", lua_tostring(L, -1));
-  }
-  lua_getglobal(L, "fs_src");
-  if (!lua_isstring(L, -1)) {
-    error(L, "error: `fs_src' shall be a string\n");
-  }
-  *fragment_shader_source = lua_tostring(L, -1);
-  lua_getglobal(L, "default_depth");
-  if (!lua_isnumber(L, -1)) {
-    error(L, "error: `default_depth' shall be a number between 0.0 and 1.0 inclusive.\n");
-  }
-  *default_depth =  lua_tonumber(L, -1);
-}
  
 int main(int argc, char *argv[]) {
   glutInit(&argc, argv);
@@ -154,16 +189,25 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: %s\n", glewGetErrorString(glew_status));
     return EXIT_FAILURE;
   }
-  
-  const char* fragment_shader_source;
-  double default_depth;
-  load_lua_fragment_shader(argv[1], &fragment_shader_source, &default_depth);
+  script_filename = argv[1];
+  load_lua_fragment_shader(script_filename, &fragment_shader_source, &default_depth);
+
+  /* Watch for script modifications */
+  inotify_fd = inotify_init();
+  int inotify_wd = inotify_add_watch(inotify_fd, script_filename, IN_MODIFY | IN_DELETE_SELF);
+  if (inotify_wd < 0) {
+    fprintf(stderr, "error on inotify");
+    return EXIT_FAILURE;
+  }
+  fcntl(inotify_fd, F_SETFL, O_NONBLOCK);
 
   if (init_resources(fragment_shader_source, default_depth)) {
     glutDisplayFunc(on_display);
+    glutIdleFunc(check_and_reload_script_if_modified);
     glutMainLoop();
   }
 
   free_resources();
+  //inotify_rm_watch(inotify_fd, inotify_wd);
   return EXIT_SUCCESS;
 }
