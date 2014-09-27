@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
   }
   
   const char* fragment_shader_source;
-  load_lua_fragment_shader("test1.lua", &fragment_shader_source);
+  load_lua_fragment_shader(argv[1], &fragment_shader_source);
 
   if (init_resources(fragment_shader_source)) {
     glutDisplayFunc(on_display);
