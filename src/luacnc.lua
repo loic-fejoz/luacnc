@@ -1,3 +1,4 @@
+default_depth = 0.0
 fs_src = ""
 
 shape_var_index = 0

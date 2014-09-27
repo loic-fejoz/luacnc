@@ -14,7 +14,7 @@
 GLuint program;
 GLint attribute_coord2d;
 
-bool init_resources(const char* fragment_shader_source_without_header) {
+bool init_resources(const char* fragment_shader_source_without_header, double default_depth) {
   GLint 
     compile_ok = GL_FALSE, 
     link_ok = GL_FALSE;
@@ -35,9 +35,12 @@ bool init_resources(const char* fragment_shader_source_without_header) {
     return false;
   }
   GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-  const char* header = "#version 120\nvoid main(void) {\ngl_FragColor[0] = 0.0;gl_FragColor[1] = 0.0;gl_FragColor[2] = 0.0;vec2 coord = vec2(gl_FragCoord.x, gl_FragCoord.y);\n";
+  const char* header_fmt = "#version 120\nvoid main(void) {\n gl_FragColor[0] = %.3lf;\n gl_FragColor[1] = %.3lf;\n gl_FragColor[2] = %.3lf;\n vec2 coord = vec2(gl_FragCoord.x, gl_FragCoord.y);\n";
+  char header[200] = {'\0'};
+  snprintf(header, 200, header_fmt, default_depth, default_depth, default_depth);
   const char* footer = "}";
   const GLchar* source[] = {header, fragment_shader_source_without_header, footer};
+  printf("shader is:\n%s%s%s\n", header, fragment_shader_source_without_header, footer);
   glShaderSource(fs, 3, source, NULL);
   glCompileShader(fs);
   glGetShaderiv(fs, GL_COMPILE_STATUS, &compile_ok);
@@ -117,7 +120,7 @@ void error (lua_State *L, const char *fmt, ...) {
   exit(EXIT_FAILURE);
 }
 
-void load_lua_fragment_shader(char *filename, const char** fragment_shader_source) {
+void load_lua_fragment_shader(char *filename, const char** fragment_shader_source, double *default_depth) {
   lua_State *L = luaL_newstate();
   luaL_openlibs(L);
 
@@ -132,7 +135,11 @@ void load_lua_fragment_shader(char *filename, const char** fragment_shader_sourc
     error(L, "error: `fs_src' shall be a string\n");
   }
   *fragment_shader_source = lua_tostring(L, -1);
-  printf("shader is:\n%s\n", *fragment_shader_source);
+  lua_getglobal(L, "default_depth");
+  if (!lua_isnumber(L, -1)) {
+    error(L, "error: `default_depth' shall be a number between 0.0 and 1.0 inclusive.\n");
+  }
+  *default_depth =  lua_tonumber(L, -1);
 }
  
 int main(int argc, char *argv[]) {
@@ -149,9 +156,10 @@ int main(int argc, char *argv[]) {
   }
   
   const char* fragment_shader_source;
-  load_lua_fragment_shader(argv[1], &fragment_shader_source);
+  double default_depth;
+  load_lua_fragment_shader(argv[1], &fragment_shader_source, &default_depth);
 
-  if (init_resources(fragment_shader_source)) {
+  if (init_resources(fragment_shader_source, default_depth)) {
     glutDisplayFunc(on_display);
     glutMainLoop();
   }
