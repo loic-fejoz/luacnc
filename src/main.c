@@ -14,7 +14,7 @@
 GLuint program;
 GLint attribute_coord2d;
 
-bool init_resources() {
+bool init_resources(const char* fragment_shader_source_without_header) {
   GLint 
     compile_ok = GL_FALSE, 
     link_ok = GL_FALSE;
@@ -35,33 +35,22 @@ bool init_resources() {
     return false;
   }
   GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-  const char *fs_source =
-    "#version 120           \n"
-    "void main(void) {        "
-    "  vec2 dist;"
-    "  dist.x = gl_FragCoord.x - 320.0;"
-    "  dist.y = gl_FragCoord.y - 320.0;"
-    "  vec2 dist2 = dist * dist;"
-    "  bool inCircle1 = (dist2.x + dist2.y < 80*80);"
-    "  bool inSquare1 = (gl_FragCoord.x > 290 && gl_FragCoord.x < 350 && gl_FragCoord.y > 290 && gl_FragCoord.y < 350);"
-    //    "  bool overall = inCircle1 && !inSquare1;"
-    "  bool flower = (dist2.x + dist2.y) < cos(atan(dist.x, dist.y) * 6) * 102400;"
-    "  bool overall = flower || inCircle1;" 
-    "  if (overall) {"
-    "    gl_FragColor[0] = 1.0;" // gl_FragCoord.z; "
-    "    gl_FragColor[1] = 0.0; "
-    "    gl_FragColor[2] = 0.0; "
-    "  } else {"
-    "    gl_FragColor[0] = 0.0; "
-    "    gl_FragColor[1] = 0.0; "
-    "    gl_FragColor[2] = 0.0; "
-    "  }"
-    "}";
-  glShaderSource(fs, 1, &fs_source, NULL);
+  const char* header = "#version 120\nvoid main(void) {\ngl_FragColor[0] = 0.0;gl_FragColor[1] = 0.0;gl_FragColor[2] = 0.0;vec2 coord = vec2(gl_FragCoord.x, gl_FragCoord.y);\n";
+  const char* footer = "}";
+  const GLchar* source[] = {header, fragment_shader_source_without_header, footer};
+  glShaderSource(fs, 3, source, NULL);
   glCompileShader(fs);
   glGetShaderiv(fs, GL_COMPILE_STATUS, &compile_ok);
   if (!compile_ok) {
     fprintf(stderr, "Error in fragment shader\n");
+    int log_info_length;
+    glGetShaderiv(fs, GL_INFO_LOG_LENGTH, &log_info_length);
+    if (log_info_length > 0 ){
+      GLchar *info_log = malloc(log_info_length * sizeof(GLchar));
+      glGetShaderInfoLog(fs, log_info_length, NULL, info_log);
+      fprintf(stderr, "%s\n", info_log);
+      free(info_log);
+    }
     return false;
   }
   program = glCreateProgram();
@@ -128,18 +117,22 @@ void error (lua_State *L, const char *fmt, ...) {
   exit(EXIT_FAILURE);
 }
 
-void loadLuaFragmentShader(char *filename, const char** fragment_shader_source) {
+void load_lua_fragment_shader(char *filename, const char** fragment_shader_source) {
   lua_State *L = luaL_newstate();
   luaL_openlibs(L);
 
+  if (luaL_loadfile(L, "luacnc.lua") || lua_pcall(L, 0, 0, 0)) {
+    error(L, "cannot run luacnc file: %s", lua_tostring(L, -1));
+  }
   if (luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, 0)) {
     error(L, "cannot run luacnc file: %s", lua_tostring(L, -1));
   }
   lua_getglobal(L, "fs_src");
   if (!lua_isstring(L, -1)) {
-    error(L, "`fs_src' shall be a string");
+    error(L, "error: `fs_src' shall be a string\n");
   }
   *fragment_shader_source = lua_tostring(L, -1);
+  printf("shader is:\n%s\n", *fragment_shader_source);
 }
  
 int main(int argc, char *argv[]) {
@@ -154,7 +147,11 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Error: %s\n", glewGetErrorString(glew_status));
     return EXIT_FAILURE;
   }
-  if (init_resources()) {
+  
+  const char* fragment_shader_source;
+  load_lua_fragment_shader("test1.lua", &fragment_shader_source);
+
+  if (init_resources(fragment_shader_source)) {
     glutDisplayFunc(on_display);
     glutMainLoop();
   }
