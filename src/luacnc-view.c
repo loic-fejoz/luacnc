@@ -35,7 +35,7 @@ bool init_resources(const char* fragment_shader_source_without_header, double de
     return false;
   }
   GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-  const char* header_fmt = "#version 120\nvoid main(void) {\n gl_FragColor[0] = %.3lf;\n gl_FragColor[1] = %.3lf;\n gl_FragColor[2] = %.3lf;\n vec2 coord = vec2(gl_FragCoord.x, gl_FragCoord.y);\n";
+  const char* header_fmt = "#version 120\nvoid main(void) {\n gl_FragColor[0] = %.3lf;\n gl_FragColor[1] = %.3lf;\n gl_FragColor[2] = %.3lf;\n vec2 coord = gl_FragCoord.xy;\n";
   char header[200] = {'\0'};
   snprintf(header, 200, header_fmt, default_depth, default_depth, default_depth);
   const char* footer = "}";
