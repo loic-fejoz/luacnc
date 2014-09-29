@@ -3,7 +3,7 @@ LuaCNC - A programmers CNC modeller and G-code generator
 
 ## Description
 
-LuaCNC is a (programming) language based on [Lua](http://www.lua.org/) used to model works for 3 axes [CNC mill/router](http://en.wikipedia.org/wiki/CNC_router):
+[LuaCNC](https://github.com/loic-fejoz/luacnc) is a (programming) language based on [Lua](http://www.lua.org/) used to model works for 3 axes [CNC mill/router](http://en.wikipedia.org/wiki/CNC_router):
 Program it in 2D, view it in 3D, build it for real.
 
 It is inspired from [IceSL](http://webloria.loria.fr/~slefebvr/icesl/), [Easel](http://www.easel.com/), and [OpenSCAD](http://www.openscad.org)  but dedicated to CNC mill.
@@ -60,7 +60,7 @@ TO BE DONE
 
 ## Authors
 
-# This is a list of people who have contributed code or ideas to ronn -- for
-# copyright purposes or whatever.
+This is a list of people who have contributed code or ideas to ronn -- for
+copyright purposes or whatever.
 
 * Loïc Fejoz <loic@fejoz.net> <https://github.com/loic-fejoz/>
