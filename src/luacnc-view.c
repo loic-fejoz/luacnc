@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2014 Loïc Fejoz
+ * This file is provided under the MIT License.
+ * author(s):
+ *  - Loïc Fejoz <loic@fejoz.net>
+ */
 #include <errno.h>
 #include <stdbool.h>
 #include <assert.h>
