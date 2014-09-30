@@ -29,6 +29,9 @@ function circle(radius)
       fs_src = fs_src .. " vec2 " .. np .. " = " .. p .. " * " .. p .. ";\n"
       fs_src = fs_src .. " bool " .. v .. " = " .. np .. ".x + " .. np .. ".y < " .. radius .. " * " .. radius .. ";\n"
    end
+   r.dist = function (p)
+      fs_src = fs_src .. " float " .. v .. "_dist = length(" .. p .. ") - ".. radius .. ";\n"
+   end
    r.name = v
    return r
 end
@@ -53,6 +56,10 @@ function Translate(v, shape)
       fs_src = fs_src .. " vec2 " .. np .. " = " .. p .. " - vec2(" .. v.x .. ", " .. v.y .. ");\n"
       shape.glsl(np)
    end
+   r.dist = function(p)
+      fs_src = fs_src .. " vec2 " .. np .. " = " .. p .. " - vec2(" .. v.x .. ", " .. v.y .. ");\n"
+      shape.dist(np)
+   end
    r.name = shape.name
    return r
 end
@@ -73,6 +80,19 @@ function union(shape1, shape2)
       shape1.glsl(p)
       shape2.glsl(p)
       fs_src = fs_src .. " bool " .. v .. " = " .. shape1.name .. " || " .. shape2.name .. ";\n"
+   end
+   r.name = v
+   return r
+end
+
+function blended_union(d, shape1, shape2)
+   local v = nextShapeVar()
+   r = {}
+   r.glsl = function (p)
+      shape1.dist(p)
+      shape2.dist(p)
+      -- Tentative to define smooth joining as defined in A. Ricci, /A Constructive Geometry for Computer Graphics/, 1973, http://hyperfun.org/FHF_Log/Ricci73.pdf
+      fs_src = fs_src .. " bool " .. v .. " = pow(pow(" .. shape1.name .. "_dist, -" .. d .. ") + pow(" .. shape2.name .. "_dist, -" .. d .. "), -1.0/" .. d .. ") <= 0;\n"
    end
    r.name = v
    return r
