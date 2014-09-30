@@ -23,7 +23,7 @@ end
 
 function circle(radius)
    local v = nextShapeVar()
-   r = {}
+   local r = {}
    r.glsl = function (p)
       np = nextPointVar()
       fs_src = fs_src .. " vec2 " .. np .. " = " .. p .. " * " .. p .. ";\n"
@@ -38,7 +38,7 @@ end
 
 function box(width)
    local v = nextShapeVar()
-   r = {}
+   local r = {}
    r.glsl = function (p)
       fs_src = fs_src .. " bool " .. v .. " = " .. p .. ".x < " .. width .. " && " .. p .. ".y < " .. width .. " && " .. p .. ".x > 0 && " .. p .. ".y > 0;\n"
    end
@@ -51,7 +51,7 @@ Translation = {}
 
 function Translate(v, shape)
    local np = nextPointVar()
-   r = {}
+   local r = {}
    r.glsl = function(p)
       fs_src = fs_src .. " vec2 " .. np .. " = " .. p .. " - vec2(" .. v.x .. ", " .. v.y .. ");\n"
       shape.glsl(np)
@@ -75,7 +75,7 @@ end
 
 function union(shape1, shape2)
    local v = nextShapeVar()
-   r = {}
+   local r = {}
    r.glsl = function (p)
       shape1.glsl(p)
       shape2.glsl(p)
@@ -87,12 +87,35 @@ end
 
 function blended_union(d, shape1, shape2)
    local v = nextShapeVar()
-   r = {}
-   r.glsl = function (p)
+   local r = {}
+   r.dist = function (p)
       shape1.dist(p)
       shape2.dist(p)
-      -- Tentative to define smooth joining as defined in A. Ricci, /A Constructive Geometry for Computer Graphics/, 1973, http://hyperfun.org/FHF_Log/Ricci73.pdf
-      fs_src = fs_src .. " bool " .. v .. " = pow(pow(" .. shape1.name .. "_dist, -" .. d .. ") + pow(" .. shape2.name .. "_dist, -" .. d .. "), -1.0/" .. d .. ") <= 0;\n"
+      -- See Matt Keeter's thesis: http://cba.mit.edu/docs/theses/13.05.Keeter.pdf
+      -- min(min(A,B, sqrt(abs(A) + sqrt(abs(b)) - r)
+      fs_src = fs_src .. " float " .. v .. "_dist = min(min(" .. shape1.name .. "_dist, " .. shape2.name .. "_dist), sqrt(abs(" .. shape1.name .. "_dist)) + sqrt(abs(" .. shape2.name .. "_dist)) - " .. d .. ");\n"
+   end
+   r.glsl = function (p)
+      r.dist(p)
+      fs_src = fs_src .. " bool " .. v .. " = " .. v .. "_dist <= 0;\n"
+   end
+   r.name = v
+   return r
+end
+
+function morph(d, shape1, shape2)
+   local v = nextShapeVar()
+   local r = {}
+   r.dist = function (p)
+      shape1.dist(p)
+      shape2.dist(p)
+      -- See Matt Keeter's thesis: http://cba.mit.edu/docs/theses/13.05.Keeter.pdf
+      -- d * A + (1-d) * B
+      fs_src = fs_src .. " float " .. v .. "_dist = " .. d .. " * " .. shape1.name .. "_dist + (1 - " .. d .. ") * " .. shape2.name .. "_dist;\n"
+   end
+   r.glsl = function (p)
+      r.dist(p)
+      fs_src = fs_src .. " bool " .. v .. " = " .. v .. "_dist <= 0;\n"
    end
    r.name = v
    return r
