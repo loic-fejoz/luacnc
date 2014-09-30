@@ -121,6 +121,23 @@ function morph(d, shape1, shape2)
    return r
 end
 
+function shell(t, shape)
+   local v = nextShapeVar()
+   local r = {}
+   r.dist = function (p)
+      shape.dist(p)
+      -- See Matt Keeter's thesis: http://cba.mit.edu/docs/theses/13.05.Keeter.pdf
+      -- max(A - t/2, -t/2-A)
+      fs_src = fs_src .. " float " .. v .. "_dist = max(" .. shape.name .. "_dist - (" .. t .. "/2.0), -(" .. t .. "/2.0) -" .. shape.name .. "_dist);\n"
+   end
+   r.glsl = function (p)
+      r.dist(p)
+      fs_src = fs_src .. " bool " .. v .. " = " .. v .. "_dist <= 0;\n"
+   end
+   r.name = v
+   return r
+end
+
 function engrave(depth, shape)
    shape.glsl("coord")
    fs_src = fs_src .. " if (" .. shape.name .. ") {\n"
