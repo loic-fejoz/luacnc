@@ -17,6 +17,12 @@ function nextPointVar()
    return "p" .. point_var_index
 end
 
+loop_var_index = 0
+function nextLoopVar()
+   loop_var_index = loop_var_index + 1
+   return "i" .. loop_var_index
+end
+
 function v(x, y)
    return {x=x,y=y}
 end
@@ -170,5 +176,17 @@ function engrave(depth, shape)
    fs_src = fs_src .. "  gl_FragColor[0] = " .. depth .. ";\n"
    fs_src = fs_src .. "  gl_FragColor[1] = " .. depth .. ";\n"
    fs_src = fs_src .. "  gl_FragColor[2] = " .. depth .. ";\n"
+   fs_src = fs_src .. " }\n"
+end
+
+function loop(start, stop, step, func)
+   local v = nextLoopVar()
+   if start > stop then
+      cmp = ">"
+   else
+      cmp = "<"
+   end
+   fs_src = fs_src .. " for(float " .. v .. " = " .. start .. "; " .. v .. " " .. cmp .. " " .. stop .. "; " .. v .. " = " .. v .. " " .. " + " .. step .. ") {\n"
+   func(v)
    fs_src = fs_src .. " }\n"
 end
