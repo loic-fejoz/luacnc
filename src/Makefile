@@ -1,7 +1,7 @@
 CFLAGS:=--std=c99 -Wall --pedantic -I/usr/include/lua5.2
 LDLIBS=-lglut -lGL -lGLEW -llua5.2 
 
-all: test1
+all: test1 luacnc-view
 
 clean:
 	rm -f *.o luacnc-view *~
