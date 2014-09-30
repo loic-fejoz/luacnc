@@ -73,6 +73,32 @@ function translate(x, y)
    return tr
 end
 
+Scalation = {}
+
+function Scale(v, shape)
+   local np = nextPointVar()
+   local r = {}
+   r.glsl = function(p)
+      fs_src = fs_src .. " vec2 " .. np .. " = " .. p .. " * vec2(" .. v.x .. ", " .. v.y .. ");\n"
+      shape.glsl(np)
+   end
+   r.dist = function(p)
+      fs_src = fs_src .. " vec2 " .. np .. " = " .. p .. " * vec2(" .. v.x .. ", " .. v.y .. ");\n"
+      shape.dist(np)
+   end
+   r.name = shape.name
+   return r
+end
+
+Scalation.mt = {}
+Scalation.mt.__mul = Scale
+
+function scale(x, y)
+   local tr = {x=x,y=y}
+   setmetatable(tr, Scalation.mt)
+   return tr
+end
+
 function union(shape1, shape2)
    local v = nextShapeVar()
    local r = {}
