@@ -6,7 +6,7 @@ LuaCNC - A programmers CNC modeller and G-code generator
 [LuaCNC](https://github.com/loic-fejoz/luacnc) is a (programming) language based on [Lua](http://www.lua.org/) used to model works for 3 axes [CNC mill/router](http://en.wikipedia.org/wiki/CNC_router):
 Program it in 2D, view it in 3D, build it for real.
 
-It is inspired from [IceSL](http://webloria.loria.fr/~slefebvr/icesl/), [Easel](http://www.easel.com/), and [OpenSCAD](http://www.openscad.org)  but dedicated to CNC mill.
+It is inspired from [Kokopelli](https://github.com/mkeeter/kokopelli), [IceSL](http://webloria.loria.fr/~slefebvr/icesl/), [Easel](http://www.easel.com/), and [OpenSCAD](http://www.openscad.org)  but dedicated to CNC mill.
 
 The main idea is to explore the use of a programming language to easily use a CNC router.
 Technically, it uses a GPU (graphical card) to compute the design that has been expressed in Lua.
