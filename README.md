@@ -1,7 +1,8 @@
 LuaCNC - A programmers CNC modeller and G-code generator
 ========================================================
 
-## Description
+Description
+-----------
 
 [LuaCNC](https://github.com/loic-fejoz/luacnc) is a (programming)
 language based on [Lua](http://www.lua.org/) used to model works for 3
@@ -22,14 +23,16 @@ As of 29th Septembre 2014, it is possible to view a grey-scale
 heightmap generated from simple Lua code.
 
 
-## System Requirements
+System Requirements
+----------------------
 
 As of 29th Septembre 2014, LuaCNC require:
 
 - an OpenGL 2.0 compatible GPU-Card.
 - Linux OS
 
-## Installation
+Installation
+------------
 
 As of 29th September 2014, one need to compile LuaCNC from sources.
 
@@ -62,11 +65,13 @@ What needs to be done:
 * Work on [all issues](https://github.com/loic-fejoz/luacnc/issues)
 
 
-## Changes
+Changes
+----------
 
 TO BE DONE
 
-## Authors
+Authors
+-------
 
 This is a list of people who have contributed code or ideas to luacnc --
 for copyright purposes or whatever.
