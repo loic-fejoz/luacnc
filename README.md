@@ -3,16 +3,23 @@ LuaCNC - A programmers CNC modeller and G-code generator
 
 ## Description
 
-[LuaCNC](https://github.com/loic-fejoz/luacnc) is a (programming) language based on [Lua](http://www.lua.org/) used to model works for 3 axes [CNC mill/router](http://en.wikipedia.org/wiki/CNC_router):
+[LuaCNC](https://github.com/loic-fejoz/luacnc) is a (programming)
+language based on [Lua](http://www.lua.org/) used to model works for 3
+axes [CNC mill/router](http://en.wikipedia.org/wiki/CNC_router):
 Program it in 2D, view it in 3D, build it for real.
 
-It is inspired from [Kokopelli](https://github.com/mkeeter/kokopelli), [IceSL](http://webloria.loria.fr/~slefebvr/icesl/), [Easel](http://www.easel.com/), and [OpenSCAD](http://www.openscad.org)  but dedicated to CNC mill.
+It is inspired from [Kokopelli](https://github.com/mkeeter/kokopelli),
+[IceSL](http://webloria.loria.fr/~slefebvr/icesl/),
+[Easel](http://www.easel.com/), and
+[OpenSCAD](http://www.openscad.org) but dedicated to CNC mill.
 
-The main idea is to explore the use of a programming language to easily use a CNC router.
-Technically, it uses a GPU (graphical card) to compute the design that has been expressed in Lua.
-The intermediate format of all utilities will probably be a heightmap.
+The main idea is to explore the use of a programming language to
+easily use a CNC router.  Technically, it uses a GPU (graphical card)
+to compute the design that has been expressed in Lua.  The
+intermediate format of all utilities will probably be a heightmap.
 
-As of 29th Septembre 2014, it is possible to view a grey-scale heightmap generated from simple Lua code.
+As of 29th Septembre 2014, it is possible to view a grey-scale
+heightmap generated from simple Lua code.
 
 
 ## System Requirements
@@ -39,7 +46,8 @@ https://github.com/loic-fejoz/luacnc
 
 The best way to contribute is probably one of the following:
 
-* Clone the repo and follow [GitHub Workflow](https://guides.github.com/introduction/flow/index.html).
+* Clone the repo and follow [GitHub
+  Workflow](https://guides.github.com/introduction/flow/index.html).
 * Contact [Me <loic@fejoz.net>](mailto:loic@fejoz.net).
 * Visit Me.
 
@@ -60,7 +68,7 @@ TO BE DONE
 
 ## Authors
 
-This is a list of people who have contributed code or ideas to ronn -- for
-copyright purposes or whatever.
+This is a list of people who have contributed code or ideas to luacnc --
+for copyright purposes or whatever.
 
 * Loïc Fejoz <loic@fejoz.net> <https://github.com/loic-fejoz/>
