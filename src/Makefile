@@ -10,6 +10,6 @@ clean:
 	./luacnc-view $<
 
 build-dep:
-	sudo apt-get install liblua5.2-0-dev lua-mode libglew-dev freeglut3-dev libc6-dev
+	sudo apt-get install liblua5.2-dev lua-mode libglew-dev freeglut3-dev libc6-dev
 
 .PHONY: all clean
