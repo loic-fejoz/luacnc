@@ -98,7 +98,7 @@ void stop_on_lua_error (lua_State *L, const char *fmt, ...) {
   vfprintf(stderr, fmt, argp);
   va_end(argp);
   lua_close(L);
-  exit(EXIT_FAILURE);
+  // exit(EXIT_FAILURE);
 }
 
 void load_lua_fragment_shader(const char *filename, const char** fragment_shader_source, double *default_depth) {
