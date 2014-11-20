@@ -121,7 +121,7 @@ void load_lua_fragment_shader(const char *filename, const char** fragment_shader
   *default_depth =  lua_tonumber(L, -1);
 }
 
-static GLuint data[640*640*3];
+static GLuint data[640*640];
 
 void read_pixels(GLuint (*data)[]) {
   glFlush();
@@ -130,7 +130,7 @@ void read_pixels(GLuint (*data)[]) {
   	       0, // top Y rectangle
   	       640, // rectangle width
   	       640, // rectangle height
-  	       GL_RGB, // GL_RGB, output format
+  	       GL_RED, // output format
 	       GL_UNSIGNED_INT, // output data type
   	       data // where output will be saved
   	       );
@@ -142,14 +142,14 @@ static bool done = false;
 void write_pixels_to_file(GLuint data[]) {
   if (!done) {
     // Write in PPM
-    printf("P3\n");
+    printf("P2\n");
     printf("640 640\n");
     printf("2147483647\n");
     unsigned int index;
     for(int y=639; y >= 0; --y) {
       for(unsigned int x=0; x < 640; ++x) {
-	index = 640 * 3 * y + 3 * x;
-	printf("%u %u %u ", data[index],  data[index+1],  data[index+2]);
+	index = 640 * y + x;
+	printf("%u ", data[index]);
       }
       printf("\n");
     }
